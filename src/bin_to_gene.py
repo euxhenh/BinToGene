@@ -222,7 +222,7 @@ class BinToGene:
                 start, end = interval.split(delim2)
                 start, end = int(start), int(end)
             except:
-                raise ValueError("Invalid bin name encountered.")
+                raise ValueError(f"Invalid bin name encountered {bin_name}.")
 
             seqname = 'chr' + seqname[len(prefix):]  # Remove prefix and add chr
             if seqname in bin_dict:  # Only accept chr1-chr22 and chrX, chrY
