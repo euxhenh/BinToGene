@@ -1,7 +1,7 @@
 <h2>BinToGene</h2>
 Library to convert a cell-by-bin matrix to cell-by-gene.
 This can be useful, for e.g., when one wishes to use existing gene expression
-tools to a sc-ATAC-seq cell-by-bin matrix.
+tools to a sc-ATAC-seq cell-by-bin matrix.</br>
 
 The package uses a gencode file (v34) to determine start and end locations
 for protein coding genes. This interval is then extended by fixed or gene-length
@@ -29,4 +29,5 @@ btg = BinToGene()  # Use default interval extension parameters
 counts, ids = btg.convert(x, bin_names, prefix='chr', delim1=':', delim2='-')
 ```
 
-<img src="https://github.com/ferrocactus/BinToGene/blob/master/images/example.png" style="zoom:72%;" />
+Example of a cell-by-gene matrix obtained via UMAP after running some basic preprocessing
+<img src="https://github.com/ferrocactus/BinToGene/blob/master/images/example.png" style="zoom:82%;" />
