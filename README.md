@@ -1,7 +1,7 @@
 <h2>BinToGene</h2>
 Library to convert a cell-by-bin matrix to cell-by-gene.
 This can be useful, for e.g., when one wishes to use existing gene expression
-tools to a sc-ATAC-seq cell-by-bin matrix.</br>
+tools to a sc-ATAC-seq cell-by-bin matrix.</br></br>
 
 The package uses a gencode file (v34) to determine start and end locations
 for protein coding genes. This interval is then extended by fixed or gene-length
@@ -13,7 +13,7 @@ averaged as specified by the user. The resulting vector is a count vector for
 the gene in consideration. Note, the counts here do not represent expression
 of the gene, but chromatin accessibility counts in the case of sc-ATAC-seq.
 In the end, these vectors are stacked to form a cell-by-gene matrix.
-Tools that are used for analyzing gene expression data can be useful interval
+Tools that are used for analyzing gene expression data can be useful in
 analyzing the cell-by-gene matrix formed this way.
 
 Example
