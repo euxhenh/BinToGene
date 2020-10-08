@@ -7,6 +7,7 @@ from tqdm import tqdm
 from .bin import Bin
 from .utils import load_gene_file
 from .utils import extend_interval
+from .utils import validate_n_jobs
 
 FORMAT = '%(levelname)s: %(message)s'
 logging.basicConfig(format=FORMAT)
@@ -29,13 +30,14 @@ class BinToGene:
 
     def __init__(
             self,
-            gencode_path: str = "gencode.v34.genes.protein_coding.csv",
+            gencode_path: str = "gencode_v34_genes_protein_coding.csv",
             operation: str = 'sum',
             extend: Optional[Union[str, int]] = '5x',
             max_extend: Optional[Union[str, int]] = 50000,
             stream_direction: bool = True,
             op_extend: Optional[Union[str, int]] = '1x',
             max_op_extend: Optional[Union[str, int]] = 10000,
+            n_jobs: Optional[int] = 0,
             logging_lvl="WARNING"):
         """
         Parameters:
@@ -60,6 +62,8 @@ class BinToGene:
 
         max_op_extend: Same as max_extend applied to op_stream_extend.
 
+        n_jobs: If None, 0, or 1 will use 1 job. Otherwise use multithreading.
+
         logging_lvl: Specify logging level.
         """
         self.logger = logging.getLogger('BinToGene')
@@ -71,6 +75,7 @@ class BinToGene:
         self.stream_direction = stream_direction
         self.op_extend = op_extend
         self.max_op_extend = max_op_extend
+        self.n_jobs = validate_n_jobs(n_jobs)
 
         if operation == 'sum':
             self.op = np.sum
@@ -184,14 +189,14 @@ class BinToGene:
             bin_names: Union[np.ndarray, list],
             prefix: Optional[str] = '',
             delim1: str = ':',
-            delim2: str = '-',
-            to_dense: bool = False):
+            delim2: str = '-'):
         """
         Given a cell by bin matrix convert it to cell by gene.
 
         x: Cell by bin matrix. Can be a numpy array or sparse matrix.
 
-        bin_names: Names of bins/columns.
+        bin_names: Names of bins/columns. Format expected to be
+            "prefix + delim1 + start + delim2 + end"
 
         prefix: If the names contain a prefix such as in 'chr1'. The remanining
             chromosome names should be 1,...,22 and X or Y.
@@ -228,21 +233,65 @@ class BinToGene:
             bin_dict[seq].sort(key=lambda x: x.start)
             bin_dict[seq] = np.array(bin_dict[seq])
 
-        active_gene_ids = []
+        # Check that bins within a sequence don't overlap
+        for seq in bin_dict:
+            for i in range(len(bin_dict[seq]) - 1):
+                next_start = bin_dict[seq][i+1].start
+                next_end = bin_dict[seq][i+1].end
+                assert bin_dict[seq][i].precedes(next_start, next_end), "Bins " + \
+                    f"{seq+str(i)} and {seq+str(i+1)} overlap."
+
+        ids = []
         counts = []
 
-        for index in tqdm(self.gencode.index):
+        if self.n_jobs == 1:
+            # Iterate over genes
+            for index in tqdm(self.gencode.index):
+                gene = self.gencode.loc[index]
+                gene_counts = self.get_gene_counts(gene, bin_dict, x)
+                if gene_counts is not None: # Gene has no intersection w bins
+                    ids.append(gene['gene_id'])
+                    counts.append(gene_counts)
+        else: # Run bin to gene conversion in parallel
+            try:
+                from joblib import Parallel, delayed
+            except ImportError as ie:
+                logger.error("joblib not installed. Please run "
+                             "pip install joblib or use 1 job.")
+
+            self.x = x
+            self.bin_dict = bin_dict
+
+            indices = self.gencode.index.to_numpy()
+            batch_size = len(indices) // self.n_jobs + self.n_jobs
+            index_groups = [] # each batch will be used in a separate thread
+
+            i = 0
+            while i < len(indices):
+                index_groups.append(indices[i:(i + batch_size)])
+                i += batch_size
+
+            result = Parallel(n_jobs=self.n_jobs)(delayed(
+                self.multithread_wrapper)(
+                    indices) for indices in index_groups)
+
+            for r in result:
+                if len(r[0]) > 0:
+                    counts.append(r[0])
+                    ids.append(r[1])
+
+        return np.asarray(np.hstack(counts)), np.hstack(ids)
+
+    def multithread_wrapper(self, indices):
+        ids = []
+        counts = []
+        for index in tqdm(indices):
             gene = self.gencode.loc[index]
-            gene_counts = self.get_gene_counts(gene, bin_dict, x)
+            gene_counts = self.get_gene_counts(gene, self.bin_dict, self.x)
             if gene_counts is not None:
+                ids.append(gene['gene_id'])
                 counts.append(gene_counts)
-                active_gene_ids.append(gene['gene_id'])
+        if len(counts) > 0:
+            return np.hstack(counts), np.hstack(ids)
+        return ids, counts
 
-        return np.array(counts), np.array(active_gene_ids)
-
-
-if __name__ == '__main__':
-    import anndata
-    a = anndata.read_h5ad('src/cell_by_bin.h5ad')
-    b = BinToGene()
-    counts, names = b.convert(a.X, a.var_names)

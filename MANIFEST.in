@@ -1,3 +1,0 @@
-include resources/gencode.v34.genes.csv
-include LICENCE
-recursive-include doc *.py *.md

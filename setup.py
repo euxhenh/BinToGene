@@ -7,7 +7,8 @@ with open("README.md", "r") as fh:
 
 install_requires = [
     'numpy',
-    'pandas'
+    'pandas',
+    'tqdm'
 ]
 
 class CleanCommand(Command):
@@ -23,8 +24,12 @@ cmdclass = {'clean': CleanCommand}
 
 setuptools.setup(
     name="BinToGene",
-    package_dir={'BinToGene': 'src'},
     packages=['BinToGene'],
+    package_dir={'BinToGene': 'src'},
+    #package_data={'src': ['resources/*.csv']},
+    data_files=[('images', ['images/example.png']),
+                ('resources', ['resources/gencode_v34_genes_protein_coding.csv'])],
+    include_package_data=True,
     version="1.0",
     author="Euxhen Hasanaj",
     author_email="ehasanaj@cs.cmu.edu",

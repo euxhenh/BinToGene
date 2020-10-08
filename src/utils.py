@@ -1,12 +1,15 @@
+import os
 from os import path
 
 import pandas as pd
 
 
 def load_gene_file(gencode_path, logger=None):
+    dir_path = os.path.dirname(os.path.realpath(__file__))
     paths = [gencode_path,
              path.join("resources", gencode_path),
-             path.join("src", gencode_path)]
+             path.join("src/resources", gencode_path),
+             path.join(dir_path, '../resources', gencode_path)]
 
     for g_path in paths:
         if path.exists(g_path):
@@ -74,7 +77,7 @@ def extend_interval(start, end, extend=None, max_extend=None, stream=None,
 
     if op_extend is None:
         raise ValueError("Please specify opposite strand extension "
-                        "or set stream to None.")
+                         "or set stream to None.")
     if max_op_extend is None:
         max_op_extend = op_extend
 
@@ -94,3 +97,11 @@ def extend_interval(start, end, extend=None, max_extend=None, stream=None,
         start = int(start - min(op_extend, max_op_extend))
         end = int(end + min(extend, max_extend))
         return start, end
+
+
+def validate_n_jobs(n_jobs):
+    if n_jobs is None:
+        return 1
+    if n_jobs == 0:
+        return 1
+    return int(n_jobs)
