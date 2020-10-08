@@ -218,7 +218,9 @@ class BinToGene:
         for i, bin_name in enumerate(bin_names):
             # Split bin name into sequence name and interval
             try:
-                seqname, interval = str(bin_name).split(delim1)
+                first_split = str(bin_name).split(delim1)
+                interval = first_split[-1]
+                seqname = ''.join(first_split[0:-1])
                 start, end = interval.split(delim2)
                 start, end = int(start), int(end)
             except:
