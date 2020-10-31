@@ -1,0 +1,8 @@
+seqname,start,end,strand,gene_id
+chr1,23,78,+,gene1
+chr1,134,178,-,gene2
+chr2,186,201,+,gene3
+chr2,10,233,+,gene4
+chr3,112,234,-,gene5
+chr3,235,653,-,gene6
+chr3,267,763,+,gene7
