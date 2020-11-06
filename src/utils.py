@@ -1,16 +1,16 @@
 import os
 from os import path
+import BinToGene
 
 import pandas as pd
 
 
 def load_gene_file(gencode_path, logger=None):
-    dir_path = os.path.dirname(os.path.realpath(__file__))
+    dir_path = os.path.dirname(BinToGene.__file__)
     paths = [gencode_path,
              path.join("resources", gencode_path),
-             path.join("src/resources", gencode_path),
-             path.join(dir_path, 'resources', gencode_path),
-             path.join(dir_path, '../resources', gencode_path)]
+             path.join(dir_path, "src/resources", gencode_path),
+             path.join(dir_path, 'resources', gencode_path)]
 
     for g_path in paths:
         if path.exists(g_path):
