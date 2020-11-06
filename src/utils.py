@@ -32,14 +32,14 @@ def load_gene_file(gencode_path, logger=None):
     return gencode
 
 
-def str_to_int(extend):
+def str_to_float(extend):
     v = ValueError("Invalid extension value found.")
 
     if extend[-1] != 'x':
         raise v
     extend = extend[:-1]
     try:
-        extend = int(extend)
+        extend = float(extend)
     except:
         raise v
 
@@ -64,9 +64,9 @@ def extend_interval(start, end, extend=None, max_extend=None, stream=None,
     assert gene_len > 0
 
     if isinstance(extend, str):
-        extend = str_to_int(extend) * gene_len
+        extend = str_to_float(extend) * gene_len
     if isinstance(max_extend, str):
-        max_extend = str_to_int(max_extend) * gene_len
+        max_extend = str_to_float(max_extend) * gene_len
 
     assert extend > 0
     assert max_extend > 0
@@ -83,9 +83,9 @@ def extend_interval(start, end, extend=None, max_extend=None, stream=None,
         max_op_extend = op_extend
 
     if isinstance(op_extend, str):
-        op_extend = str_to_int(op_extend) * gene_len
+        op_extend = str_to_float(op_extend) * gene_len
     if isinstance(max_op_extend, str):
-        max_op_extend = str_to_int(max_op_extend) * gene_len
+        max_op_extend = str_to_float(max_op_extend) * gene_len
 
     assert op_extend > 0
     assert max_op_extend > 0
