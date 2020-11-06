@@ -144,7 +144,7 @@ class BinToGene:
         seqname = gene['seqname']
 
         if seqname not in bin_dict:
-            return None
+            return None, None
 
         # Determine whether different extension should be used for
         # different stream direction
@@ -175,9 +175,9 @@ class BinToGene:
             for i in range(first, last+1):
                 indices[i-first] = bin_dict[seqname][i].index
 
-            return getattr(x[:, indices], self.operation)(axis=1)
+            return getattr(x[:, indices], self.operation)(axis=1), indices
 
-        return None  # if no intersection found
+        return None, None  # if no intersection found
 
     def convert(
             self,
@@ -241,15 +241,17 @@ class BinToGene:
 
         ids = []
         counts = []
+        self.bin_ranges = []
 
         if self.n_jobs == 1:
             # Iterate over genes
             for index in tqdm(self.gencode.index):
                 gene = self.gencode.loc[index]
-                gene_counts = self.get_gene_counts(gene, bin_dict, x)
+                gene_counts, bin_range = self.get_gene_counts(gene, bin_dict, x)
                 if gene_counts is not None: # Gene has no intersection w bins
                     ids.append(gene['gene_id'])
                     counts.append(gene_counts.reshape(-1, 1))
+                    self.bin_ranges.append(bin_range)
         else: # Run bin to gene conversion in parallel
             try:
                 from joblib import Parallel, delayed
@@ -277,6 +279,7 @@ class BinToGene:
                 if len(r[0]) > 0:
                     counts.append(r[0])
                     ids.append(r[1])
+                    self.bin_ranges += r[2]
 
         if len(counts) > 0:
             counts = np.hstack(counts)
@@ -286,13 +289,15 @@ class BinToGene:
     def multithread_wrapper(self, indices):
         ids = []
         counts = []
+        bin_ranges = []
         for index in tqdm(indices):
             gene = self.gencode.loc[index]
-            gene_counts = self.get_gene_counts(gene, self.bin_dict, self.x)
+            gene_counts, bin_range = self.get_gene_counts(gene, self.bin_dict, self.x)
             if gene_counts is not None:
                 ids.append(gene['gene_id'])
                 counts.append(gene_counts.reshape(-1, 1))
+                bin_ranges.append(bin_range)
         if len(counts) > 0:
-            return np.hstack(counts), np.hstack(ids)
-        return ids, counts
+            return np.hstack(counts), np.hstack(ids), bin_ranges
+        return ids, counts, bin_ranges
 

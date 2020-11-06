@@ -30,7 +30,7 @@ setuptools.setup(
     #data_files=[('images', ['images/example.png']),
     #            ('resources', ['resources/gencode_v34_genes_protein_coding.csv'])],
     include_package_data=True,
-    version="1.15",
+    version="1.20",
     author="Euxhen Hasanaj",
     author_email="ehasanaj@cs.cmu.edu",
     description="A bin to gene conversion package.",
