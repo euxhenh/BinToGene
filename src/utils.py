@@ -68,8 +68,8 @@ def extend_interval(start, end, extend=None, max_extend=None, stream=None,
     if isinstance(max_extend, str):
         max_extend = str_to_float(max_extend) * gene_len
 
-    assert extend > 0
-    assert max_extend > 0
+    assert extend >= 0
+    assert max_extend >= 0
 
     if stream is None:
         start = int(start - min(extend, max_extend))
@@ -87,8 +87,8 @@ def extend_interval(start, end, extend=None, max_extend=None, stream=None,
     if isinstance(max_op_extend, str):
         max_op_extend = str_to_float(max_op_extend) * gene_len
 
-    assert op_extend > 0
-    assert max_op_extend > 0
+    assert op_extend >= 0
+    assert max_op_extend >= 0
 
     if stream == '+':  # upstream
         start = int(start - min(extend, max_extend))
