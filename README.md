@@ -1,6 +1,6 @@
 <h2>BinToGene</h2>
 Library to convert a cell-by-bin matrix to cell-by-gene, i.e., it replaces
-the promoter accessibility with a gene activiy score.
+the promoter accessibility with a gene activity score.
 This can be useful, for e.g., when one wishes to use existing gene expression
 tools to a sc-ATAC-seq cell-by-bin matrix.</br></br>
 
